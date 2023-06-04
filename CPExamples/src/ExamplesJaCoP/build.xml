@@ -1,0 +1,86 @@
+ <project name="JaCoP" default="compile" basedir=".">
+    <description>
+        Examples JaCoP dsitribution
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="."/>
+  <property name="build" location=".."/>
+  <property name="doc" location="${JaCoP}/doc"/>
+  <property name="dist"  location="${JaCoP}/distribution"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <!-- mkdir dir="${build}" -->
+  </target>
+
+  <target name="compile" depends="init"
+        description="Compiling ExamplesJaCoP" >
+
+    <!-- Remove & recompile all *.class files when build.xml chnages -->
+    <dependset>
+      <srcfilelist dir = "${src}" files = "build.xml"/>
+      <targetfileset dir = "${src}" includes = "**/*.class"/>
+    </dependset>
+
+    <!-- Compile the java code from ${src} into ${build} -->
+
+    <javac srcdir="${src}"
+ 	   includes="**/*.java"
+	   optimize="true" 
+	   includeAntRuntime="false" listfiles="true">
+      <!-- debug="true" debuglevel="lines,vars,source" -->
+      <!-- <compilerarg value="-Xlint:deprecation"/> -->
+      <classpath>
+	<pathelement path="${build}"/>
+      </classpath>
+    </javac>
+  </target>
+
+
+  <target name="doc"
+          description="Generation of documentation for JaCoP" >
+    <javadoc sourcepath="${src}" 
+             destdir="${doc}" 
+             windowtitle="Java Constraint Programming (JaCoP) Specification"
+             doctitle="Java Constraint Programming (JaCoP) Specification"
+             public="true">
+
+      <fileset dir="${src}" >
+	<include name="**/*.java"/>
+        <exclude name="core/Constants.java"/>
+        <exclude name="graph/*.java"/>
+      </fileset>
+
+      <fileset dir="${src}" >
+	<include name="**/*.java"/>
+      </fileset>
+
+      <classpath>
+	<pathelement path="${build}"/>
+      </classpath>
+    </javadoc>
+
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+
+    <zip destfile="${dist}/exAPI.zip"
+         basedir="${doc}"/>
+
+    <delete dir="${doc}"/>
+
+
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+
+    <delete >
+      <fileset dir="${dist}">
+      </fileset>
+    </delete>
+  </target>
+
+</project>
