@@ -208,7 +208,8 @@ public class ProAndCon extends Example {
 		IntVar reified[] = new IntVar[5];
 		for (int i = 0; i < 5; i++) {
 			reified[i] = new IntVar(store, "agreeOnVote" + i, 0, 1);
-			store.impose(new Reified(new XeqY(vote[iBaird][i], vote[iDuval][i]), reified[i]));
+			store.impose(new Reified(
+					new XeqY(vote[iBaird][i], vote[iDuval][i]), reified[i]));
 		}
 
 		// There are 5 votes for each person, this means that no of yes votes is
@@ -226,7 +227,7 @@ public class ProAndCon extends Example {
 		// We take each pair and make sure they are not two yes votes
 		IntVar two = new IntVar(store, "2", 2, 2);
 		for (int i = 0; i < 4; i++)
-			store.impose(new XplusYltZ(vote[iChatham][i],
+			store.impose(new XplusYlteqZ(vote[iChatham][i],
 					vote[iChatham][i + 1], two));
 
 		// 6. Mr. Akerman and Ms. Baird both voted in favor of motion 4.
