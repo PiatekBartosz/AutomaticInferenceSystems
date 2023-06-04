@@ -421,17 +421,17 @@ public class Queens extends Example {
 			System.out.println("Solution(s) found 3");		
 		
 		
-//		example = new Queens();
-//
-//		// It is possible to supply the program
-//		// with the chessboard size
-//		if (args.length != 0)
-//			example.numberQ = new Integer(args[0]);
-//		
-//		example.modelFields();
-//
-//		if (example.search())
-//			System.out.println("Solution(s) found");	
+		example = new Queens();
+
+		// It is possible to supply the program
+		// with the chessboard size
+		if (args.length != 0)
+			example.numberQ = new Integer(args[0]);
+		
+		example.modelFields();
+
+		if (example.search())
+			System.out.println("Solution(s) found");	
 		
 	}	
 
