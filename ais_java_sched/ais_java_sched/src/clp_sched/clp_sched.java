@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 /**
  * @author
- * Bartosz Piatek
+ * Bartosz Piatek & Gabriel Malanowski
  */
 
 public class clp_sched {
@@ -63,11 +63,11 @@ public class clp_sched {
 
 		for (int i = 0; i < 5; i++) {
 
-			A[i] = new IntVar(store, "A[" + i + "]", 0, 100);
+			A[i] = new IntVar(store, "A[" + i + "]", 0, 1000);
 
-			B[i] = new IntVar(store, "B[" + i + "]", 0, 100);
+			B[i] = new IntVar(store, "B[" + i + "]", 0, 1000);
 
-			C[i] = new IntVar(store, "C[" + i + "]", 0, 100);
+			C[i] = new IntVar(store, "C[" + i + "]", 0, 1000);
 	
 			vars.add(A[i]); vars.add(B[i]); vars.add(C[i]);
 		}
@@ -106,7 +106,9 @@ public class clp_sched {
 
 		store.impose(new Cumulative(three, enamel, threeOnes, one));
                 
-		IntVar makespan = new IntVar(store, "makespan", 0, 1000);
+                IntVar makespanA = new IntVar(store, "makespanA", 0, 110);
+                IntVar makespanB = new IntVar(store, "makespanB", 0, 110);
+                IntVar makespanC = new IntVar(store, "makespanC", 0, 110);
 
 		int[] APrecedence = {1, 2, 3, 4, 5};
 
@@ -115,7 +117,7 @@ public class clp_sched {
 					durations[APrecedence[i] - 1][0],
 					A[APrecedence[i + 1] - 1]));
 
-		store.impose(new XplusYlteqZ(A[4], enamel[0], makespan));
+		store.impose(new XplusYlteqZ(A[4], enamel[0], makespanA));
 
 		int[] BPrecedence = {2, 1, 3, 5, 4};
 
@@ -124,7 +126,7 @@ public class clp_sched {
 					durations[BPrecedence[i] - 1][1],
 					B[BPrecedence[i + 1] - 1]));
 
-		store.impose(new XplusYlteqZ(B[4], enamel[1], makespan));
+		store.impose(new XplusYlteqZ(B[3], lacquer[1], makespanB));
 
 		int[] charliePrecedence = {2, 1, 3, 4, 5};
 
@@ -133,7 +135,10 @@ public class clp_sched {
 					durations[charliePrecedence[i] - 1][2],
 					C[charliePrecedence[i + 1] - 1]));
 
-		store.impose(new XplusYlteqZ(C[4], enamel[2], makespan));
+		store.impose(new XplusYlteqZ(C[4], enamel[2], makespanC));
+
+                
+//                store.impose(new X)
 
         // MODEL END
 
@@ -145,7 +150,27 @@ public class clp_sched {
                                       new SmallestDomain<IntVar>(), 
                                       new MostConstrainedStatic<IntVar>(),
                                       new IndomainMin<IntVar>() );
-        boolean result = search.labeling(store, select);
+        
+        // A & C equal starting times
+        store.impose(new XeqY(A[0], C[1]));
+
+        IntVar cost = new IntVar(store, "cost", 0, 1000);
+
+        // Duration A
+        IntVar durationA = new IntVar(store, "dA", 0, 1000);
+        store.impose(new XplusYeqZ(A[0], A[1], durationA));
+        // Duration B
+        IntVar durationB = new IntVar(store, "dB", 0, 1000);
+        store.impose(new XplusYeqZ(B[1], B[0], durationB));
+        // Duration C
+        IntVar durationC = new IntVar(store, "dC", 0, 1000);
+        store.impose(new XplusYeqZ(C[0], C[1], durationC));
+
+        IntVar tmpCost = new IntVar(store, "tmpCost", 0, 1000);
+        store.impose(new XplusYeqZ(durationA, durationB, tmpCost));
+        store.impose(new XplusYeqZ(tmpCost, durationC, cost));
+
+        boolean result = search.labeling(store, select, cost);
         
         System.out.println("Search result is: " + result);
         
@@ -164,6 +189,4 @@ public class clp_sched {
     }
     
 }
-        
-        
         

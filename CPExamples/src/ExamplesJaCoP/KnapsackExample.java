@@ -345,7 +345,7 @@ public class KnapsackExample extends Example {
 				if (weights[i] == weights[j] && profits[i] == profits[j])
 					store.impose(new XgteqY(quantity[i], quantity[j]));
 
-		IntVar profitNegation = new IntVar(store, "ProfitNegation", -100000, 0);
+		IntVar profitNeagtion = new IntVar(store, "ProfitNegation", -100000, 0);
 
 		store.impose(new XplusYeqC(profit, profitNegation, 0));		
 		

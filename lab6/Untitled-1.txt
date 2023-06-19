@@ -1,0 +1,313 @@
+*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package clp_sched;
+
+import org.jacop.core.*; 
+import org.jacop.constraints.*; 
+import org.jacop.search.*; 
+import java.util.ArrayList;
+
+/**
+ *
+ * @author
+ */
+
+/**
+ * 
+ 
+ */
+
+public class clp_sched {
+
+    
+    protected Store store = new Store();
+    protected DepthFirstSearch search = new DepthFirstSearch<IntVar>();
+    protected IntVar [] integers;
+    protected ArrayList<IntVar> vars = new ArrayList<IntVar>();
+
+    
+    	public void sched_museum() {
+		// Creating constraint store
+		//	store = new Store();
+		//	vars = new ArrayList<Var>();
+		
+		// algy[0], bertie[0], charlie[0], digby[0]
+		// - when a person starts reading guardian
+		IntVar[] tele = new IntVar[4];
+		IntVar[] electronics= new IntVar[4];
+		IntVar[] architecture = new IntVar[4];
+		IntVar[] mechanical = new IntVar[4];
+
+		IntVar[] automobiles = new IntVar[4];
+		//guardian[0] = new IntVar(store, "durationAlgyGuardian", -10, 30);
+		automobiles[0] = new IntVar(store, "tele-automobiles", 45, 45);
+		automobiles[1] = new IntVar(store, "electronics-automobiles", 30, 30);
+		automobiles[2] = new IntVar(store, "architectur-automobiles", 45, 45);
+		automobiles[3] = new IntVar(store, "mechanical-automobiles", 60, 60);
+		IntVar[] cameras  = new IntVar[4];
+		cameras[0] = new IntVar(store, "tele-cameras", 25, 25);
+		cameras[1] = new IntVar(store, "electronics-cameras", 40, 40);
+		cameras[2] = new IntVar(store, "architecture-cameras", 30, 30);
+		cameras[3] = new IntVar(store, "mechanical-cameras", 30, 30);
+		IntVar[] radio_communication = new IntVar[4];
+		radio_communication[0] = new IntVar(store, "telecommunication", 60, 60);
+		radio_communication[1] = new IntVar(store, "electronics", 60, 60);
+		radio_communication[2] = new IntVar(store, "architecture", 30, 30);
+		radio_communication[3] = new IntVar(store, "mechanical engineering", 20, 20);
+		
+
+		IntVar[][] durations = new IntVar[3][];
+		durations[0] = automobiles;
+		durations[1] = cameras;
+		durations[2] = radio_communication;
+		
+
+		for (int i = 0; i < 3; i++) {
+			
+			// Variables can be enforced to have proper initial domains
+			// in four different ways.
+			
+			//telekom o 10
+			tele[i] = new IntVar(store, "telecommunication[" + i + "]", 0, 300);
+			
+			// bertie[i] = new Variable(store, "bertie[" + i + "]", 15, 1000);
+			architecture[i] = new IntVar(store, "architecture[" + i + "]", 15, 300);
+			//studenci archi przyjeżdżają 15 po
+			
+			// elektronicy o 10:30
+			electronics[i] = new IntVar(store, "electronics[" + i + "]", 30, 180);
+
+			//o 10:45 
+			mechanical[i] = new IntVar(store, "mechanical[" + i + "]", new IntervalDomain(45, 300));
+			
+			vars.add(tele[i]); vars.add(architecture[i]); vars.add(electronics[i]); vars.add(mechanical[i]);
+		}
+
+		IntVar one = new IntVar(store, "one", 1, 1);
+		IntVar[] four = new IntVar[4];
+		IntVar[] fourOnes = { one, one, one, one};
+
+		four[0] = tele[0];
+		four[1] = electronics[0];
+		four[2] = architecture[0];
+		four[3] = mechanical[0];
+		// Guardian newspaper is read at any time by only one person
+		store.impose(new Cumulative(four, automobiles, fourOnes, one));
+
+		four[0] = tele[1];
+		four[1] = electronics[1];
+		four[2] = architecture[1];
+		four[3] = mechanical[1];
+		// FT newspaper is read at any time by only one person
+		store.impose(new Cumulative(four, cameras, fourOnes, one));
+
+		four[0] = tele[2];
+		four[1] = electronics[2];
+		four[2] = architecture[2];
+		four[3] = mechanical[2];
+		// Express newspaper is read at any time by only one person
+		store.impose(new Cumulative(four, radio_communication, fourOnes, one));
+
+		
+
+		IntVar makespan = new IntVar(store, "makespan", 0, 1000);
+
+		int[] telePrecedence = { 1, 2, 3 };
+		// Constraints imposed below in for loop make sure that
+		// algy reads newspapers sequentially and in the right order
+		for (int i = 0; i < 2; i++)
+			store.impose(new XplusYlteqZ(tele[telePrecedence[i] - 1],
+					durations[telePrecedence[i] - 1][0],
+					tele[telePrecedence[i + 1] - 1]));
+
+		// Make sure that makespan is at least equal to
+		// the time point when algy finishes reading sun
+		store.impose(new XplusYlteqZ(tele[2], radio_communication[0], makespan));
+
+		int[] electronicsPrecedence = { 3, 1, 2 };
+		// Constraints imposed below in for loop make sure that
+		// bertie reads newspapers sequentially and in the right order
+		for (int i = 0; i < 2; i++)
+			store.impose(new XplusYlteqZ(electronics[electronicsPrecedence[i] - 1],
+					durations[electronicsPrecedence[i] - 1][1],
+					electronics[electronicsPrecedence[i + 1] - 1]));
+
+		// Make sure that makespan is at least equal to
+		// the time point when bertie finishes reading sun
+		store.impose(new XplusYlteqZ(electronics[2], cameras[1], makespan));
+
+		int[] architecturePrecedence = { 2, 3, 1 };
+		// Constraints imposed below in for loop make sure that
+		// charlie reads newspapers sequentially and in the right order
+		for (int i = 0; i < 2; i++)
+			store.impose(new XplusYlteqZ(architecture[architecturePrecedence[i] - 1],
+					durations[architecturePrecedence[i] - 1][2],
+					architecture[architecturePrecedence[i + 1] - 1]));
+
+		// Make sure that makespan is at least equal to
+		// the time point when charlie finishes reading sun
+		store.impose(new XplusYlteqZ(architecture[2], automobiles[2], makespan));
+
+		int[] mechanicalPrecedence = { 1, 3, 2 };
+		// Constraints imposed below in for loop make sure that
+		// digby reads newspapers sequentially and in the right order
+		for (int i = 0; i < 2; i++)
+			store.impose(new XplusYlteqZ(mechanical[mechanicalPrecedence[i] - 1],
+					durations[mechanicalPrecedence[i] - 1][3],
+					mechanical[mechanicalPrecedence[i + 1] - 1]));
+
+		// Make sure that makespan is at least equal to
+		// the time point when digby finishes reading express
+		store.impose(new XplusYlteqZ(mechanical[1], cameras[3], makespan));
+        // MODEL END
+
+        // SEARCH
+        
+		System.out.println("Scheduling search.");
+    
+        SelectChoicePoint<IntVar> select = new SimpleSelect<IntVar>( vars.toArray(new IntVar[1]), 
+                                      new SmallestDomain<IntVar>(), 
+                                      new MostConstrainedStatic<IntVar>(),
+                                      new IndomainMin<IntVar>() );
+        boolean result = search.labeling(store, select);
+        
+        System.out.println("Search result is: " + result);
+        
+        // SEARCH END
+        
+     		for (int i = 0; i < 3; i++)  System.out.println("A: " + tele[i]);
+     		for (int i = 0; i < 3; i++)  System.out.println("B: " + electronics[i]);
+     		for (int i = 0; i < 3; i++)  System.out.println("C: " + architecture[i]);
+     		for (int i = 0; i < 3; i++)  System.out.println("D: " + mechanical[i]);
+                
+                
+                /* ZAD.1
+                
+                // Determine the maximum end time for electronics students
+        int maxEndTime = -1;
+        for (int i = 0; i < 3; i++) {
+            int endTime = electronics[i].value() + durations[1][i].value();
+            if (endTime > maxEndTime) {
+                maxEndTime = endTime;
+            }
+        }
+
+        System.out.println("Earliest time for electronics students to end their tour: " + maxEndTime);*/
+                
+                /* ZAD.2
+                // Determine the maximum end time for the guide to leave before 13:30
+    int maxEndTime = -1;
+    for (int i = 0; i < 3; i++) {
+        int endTime = radio_communication[i].value() + durations[2][i].value();
+        if (endTime <= 210 && endTime > maxEndTime) {
+            maxEndTime = endTime;
+        }
+    }
+
+    System.out.println("Earliest time for the guide to leave work: " + maxEndTime);
+                */
+                
+                
+              /* ZAD.3
+                // Create a new variable for telecommunication students' start time
+    IntVar teleStart = new IntVar(store, "tele-start", 0, 300);
+
+    // Add the constraint to enforce telecommunication students' start time
+    store.impose(new XplusYlteqZ(tele[0], tele[0], teleStart));
+
+     // Search for a feasible solution
+    System.out.println("Scheduling search.");
+ 
+ 
+
+    
+    if (result) {
+        System.out.println("Schedule found:");
+
+        // Print the schedule
+        for (int i = 0; i < 3; i++) {
+            System.out.println("Telecommunication student " + (i + 1) + ":");
+            System.out.println("Start time: " + tele[i].value());
+            System.out.println("End time: " + (tele[i].value() + durations[0][i].value()));
+            System.out.println();
+        }
+    } else {
+        System.out.println("No feasible schedule found.");
+    }*/
+   
+        }
+        
+
+
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        
+        clp_sched sched = new clp_sched(); 
+        
+
+             sched.sched_museum();
+    }
+    
+}    
+        
+       
+
+
+ZAD.1
+Search result is: true
+A: telecommunication[0] = 0
+A: telecommunication[1] = 45
+A: telecommunication[2] = 120
+B: electronics[0] = 90
+B: electronics[1] = 120
+B: electronics[2] = 30
+C: architecture[0] = 180
+C: architecture[1] = 15
+C: architecture[2] = 90
+D: mechanical[0] = 120
+D: mechanical[1] = 200
+D: mechanical[2] = 180
+
+Earliest time for electronics students to end their tour: 160
+
+ZAD.2 
+Search result is: true
+A: telecommunication[0] = 0
+A: telecommunication[1] = 45
+A: telecommunication[2] = 120
+B: electronics[0] = 90
+B: electronics[1] = 120
+B: electronics[2] = 30
+C: architecture[0] = 180
+C: architecture[1] = 15
+C: architecture[2] = 90
+D: mechanical[0] = 120
+D: mechanical[1] = 200
+D: mechanical[2] = 180
+Earliest time for the guide to leave work: 120
+
+ZAD.3
+Search result is: true
+A: telecommunication[0] = 0
+A: telecommunication[1] = 45
+A: telecommunication[2] = 120
+B: electronics[0] = 90
+B: electronics[1] = 120
+B: electronics[2] = 30
+C: architecture[0] = 180
+C: architecture[1] = 15
+C: architecture[2] = 90
+D: mechanical[0] = 120
+D: mechanical[1] = 200
+D: mechanical[2] = 180
+Scheduling search.
+Schedule found:
+Telecommunication student 1:
+Start time: 0
+End time: 45
